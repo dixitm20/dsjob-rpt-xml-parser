@@ -50,7 +50,7 @@ function getParameters()
 	local baseFunction="${3}";
 	
 	
-	clearParameters ${paramString} ${expectedParamList} ${baseFunction}
+	clearParameters "${paramString}" "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: getParameters  ##################"
 	debug "paramString : ${paramString}"
