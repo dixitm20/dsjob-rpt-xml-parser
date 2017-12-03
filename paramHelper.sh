@@ -29,12 +29,12 @@
 # 	local __this=${FUNCNAME[0]}
 # 	
 # 	# Extract param values from input arguments
-# 	getParameters ${1} ${__expectedParam} ${__this}
+# 	getParameters "${1}" "${__expectedParam}" "${__this}"
 # 	
 # 	# Function Logic Below
 # 	
 # 	# Clear argument variables from the environment
-# 	clearParameters ${1} ${__expectedParam} ${__this}
+# 	clearParameters "${1}" "${__expectedParam}" "${__this}"
 # 
 # }
 # -----------------------------------
