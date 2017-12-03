@@ -84,7 +84,7 @@ function getParameters()
 	local inputParamValue=""
 	local isNotFoundExpectedParam=true
 
-	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'\n'}; do
+	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'"\n"'}; do
 		expectedParamName=${currentExpectedParam%%=*}
 		defaultParamValue=${currentExpectedParam#*=}
 		
@@ -99,7 +99,7 @@ function getParameters()
 		debug "defaultParamValue = ${defaultParamValue};"
 		
 		isNotFoundExpectedParam=true		
-		for currentInputParam in ${modParamString//$(echo ${paramStringDelimiter})/$'\n'}; do
+		for currentInputParam in ${modParamString//$(echo ${paramStringDelimiter})/$'"\n"'}; do
 			inputParamName=${currentInputParam%%=*}
 			inputParamValue=${currentInputParam#*=}
 			
@@ -180,7 +180,7 @@ function clearParameters()
 	local currentExpectedParam="";
 	local expectedParamName=""
 
-	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'\n'}; do
+	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'"\n"'}; do
 		expectedParamName=${currentExpectedParam%%=*}
 		
 		# ltrim & rtrim the values
