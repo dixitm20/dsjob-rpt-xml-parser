@@ -51,7 +51,7 @@ function getParameters()
 	
 	
 	
-	#clearParameters "${paramString}" "${expectedParamList}" "${baseFunction}"
+	clearParameters "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: getParameters  ##################"
 	debug "paramString : ${paramString}"
@@ -208,7 +208,7 @@ function mapParameters()
 	
 	
 	
-	#clearParameters "${valueString}" "${expectedParamList}" "${baseFunction}"
+	clearParameters "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: mapParameters  ##################"
 	debug "valueString : ${valueString}"
