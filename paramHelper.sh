@@ -50,7 +50,6 @@ function getParameters()
 	local baseFunction="${3}";
 	
 	
-	
 	clearParameters "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: getParameters  ##################"
@@ -116,7 +115,10 @@ function getParameters()
 		[[ "${paramValue:-}" == "" ]] && emergency "Expected Value For Parameter: ## ${paramName} ## Missing In Call For Function: ## ${baseFunction} ##. Exiting."
 				
 		eval ${paramName}='${paramValue}';
-	
+		
+		
+		notice "${!paramName}"
+			
 		debug "${paramName}=${paramValue};"
 	done <<< "$(echo "${defValueList}")"
 	
@@ -144,9 +146,7 @@ function clearParameters()
 	local clearParamList=$( echo "${1}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
 	local baseFunction="${2}";
 	
-	
-	
-	#clearParameters "${paramString}" "${clearParamList}" "${baseFunction}"
+
 	
 	debug "################## BEGIN FUNCTION: clearParameters  ##################"
 	debug "clearParamList : ${clearParamList}"
