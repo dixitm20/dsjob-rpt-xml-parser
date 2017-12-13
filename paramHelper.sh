@@ -29,12 +29,12 @@
 # 	local __this=${FUNCNAME[0]}
 # 	
 # 	# Extract param values from input arguments
-# 	getParameters "${1}" "${__expectedParam}" "${__this}"
+# 	getParameters ${1} ${__expectedParam} ${__this}
 # 	
 # 	# Function Logic Below
 # 	
 # 	# Clear argument variables from the environment
-# 	clearParameters "${1}" "${__expectedParam}" "${__this}"
+# 	clearParameters ${1} ${__expectedParam} ${__this}
 # 
 # }
 # -----------------------------------
@@ -50,93 +50,78 @@ function getParameters()
 	local baseFunction="${3}";
 	
 	
-	clearParameters "${paramString}" "${expectedParamList}" "${baseFunction}"
+	
+	#clearParameters "${paramString}" "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: getParameters  ##################"
 	debug "paramString : ${paramString}"
 	debug "expectedParamList : ${expectedParamList}"
-	debug "Caller Function : ${baseFunction} ${paramString}"
+	debug "Caller Function : ${baseFunction}"
 	# Store name of the caller function in variable
 	
 	
 	# Extract the argument delimiter from the parameter string
 	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';"
 	# return :  , 
-	local paramStringDelimiter=$( echo "${paramString}" | sed  "s/^.*:delim='\(.*\)';/\1/1" );
-	local expectedParamlistDelimiter=$( echo "${expectedParamList}" | sed  "s/^.*:delim='\(.*\)';/\1/1" );
+	local paramStringDelimiter=$( echo "${paramString}" | sed  "s/^.*:delim='\(.*\)';$/\1/1" );
+	local expectedParamlistDelimiter=$( echo "${expectedParamList}" | sed  "s/^.*:delim='\(.*\)';$/\1/1" );
+	
 	
 	# If no delimiter is specified (:delim'|'; not present) then set the default to , (commma)
-	[[ ${paramStringDelimiter} = ${paramString} ]] && paramStringDelimiter=','
-	[[ ${expectedParamlistDelimiter} = ${expectedParamList} ]] && expectedParamlistDelimiter=','
+	[[ "${paramStringDelimiter}" == "${paramString}" ]] && paramStringDelimiter=','
+	[[ "${expectedParamlistDelimiter}" = "${expectedParamList}" ]] && expectedParamlistDelimiter=','
+	
+	debug "paramStringDelimiter : ${paramStringDelimiter}"
+	debug "expectedParamlistDelimiter : ${expectedParamlistDelimiter}"
+	
 	
 	# Remove the start & end paranthesis and delim specification from the param string
 	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';" OR "(arg1=val1,arg2=val2,arg3=val3)"
 	# return : arg1=val1,arg2=val2,arg3=val3 	
-	local modParamString=$( echo "${paramString}" | sed 's/^(\s*//g' | sed "s/\s*):delim=.*;$//g" | sed "s/\s*)$//g" );
-	local modexpectedParamList=$( echo "${expectedParamList}" | sed 's/^(\s*//g' | sed "s/\s*):delim=.*;$//g" | sed "s/\s*)$//g" );
+	local modParamString=$( echo "${paramString}" | sed 's/:delim.*;$//1' | sed -e 's/^(//g' -e 's/)$//g' );
+	local modexpectedParamList=$( echo "${expectedParamList}" | sed 's/:delim.*;$//1' | sed -e 's/^(//g' -e 's/)$//g' );
 	
-	local currentExpectedParam="";
-	local expectedParamName=""
-	local defaultParamValue=""	
+	debug "modParamString : ${modParamString}"
+	debug "modexpectedParamList : ${modexpectedParamList}"	
 	
-	local currentInputParam="";
-	local inputParamName=""
-	local inputParamValue=""
-	local isNotFoundExpectedParam=true
-
-	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'"\n"'}; do
-		expectedParamName=${currentExpectedParam%%=*}
-		defaultParamValue=${currentExpectedParam#*=}
-		
-		# ltrim & rtrim the values
-		expectedParamName=$( echo "${expectedParamName}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-		defaultParamValue=$( echo "${defaultParamValue}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-		
-		
-		[[ ${expectedParamName} = ${defaultParamValue} ]] && defaultParamValue=""
-		
-		debug "expectedParamName = ${expectedParamName};"
-		debug "defaultParamValue = ${defaultParamValue};"
-		
-		isNotFoundExpectedParam=true		
-		for currentInputParam in ${modParamString//$(echo ${paramStringDelimiter})/$'"\n"'}; do
-			inputParamName=${currentInputParam%%=*}
-			inputParamValue=${currentInputParam#*=}
-			
-			# ltrim & rtrim the values
-			inputParamName=$( echo "${inputParamName}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-			inputParamValue=$( echo "${inputParamValue}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-			
-			[[ ${inputParamName} = ${inputParamValue} ]] && inputParamValue=""
-			
-			
-			if [[ ${expectedParamName} = ${inputParamName} &&  ${inputParamValue} != "" ]]; then
-
-				debug "inputParamName = ${inputParamName};"
-				debug "inputParamValue = ${inputParamValue};"
-
-				eval ${expectedParamName}=${inputParamValue};
-				isNotFoundExpectedParam=false;
-				debug "${expectedParamName} = ${!expectedParamName};"
-				break;
-			fi
-		done
-		
-		
-		if [[ ${isNotFoundExpectedParam} = true && ${defaultParamValue} != "" ]]; then
-			eval ${expectedParamName}=${defaultParamValue};
-			isNotFoundExpectedParam=false;
-			debug "isNotFoundExpectedParam (Using Default) = ${isNotFoundExpectedParam};"
-		fi
-		
-		
-		
-		if [[ ${isNotFoundExpectedParam} = true ]]; then
-			debug "isNotFoundExpectedParam = ${isNotFoundExpectedParam};"
-			emergency "Expected Parameter: ## ${expectedParamName} ## Missing In Call For Function: ## ${baseFunction} ${paramString} ##. Exiting."
-		fi
+	declare -A argValueList
 	
-	done	
+	
+	local paramValueList="$(echo ${modParamString} | awk " BEGIN { RS=\"[${paramStringDelimiter}]\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+	local defValueList="$(echo ${modexpectedParamList} | awk " BEGIN { RS=\"[${expectedParamlistDelimiter}]\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+	#debug "paramValueList : ${paramValueList}"
+	#debug "defValueList : ${defValueList}"
+	
+	while
+	read -r paramName paramValue
+	do
+		paramName=$(echo "${paramName}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		
+		argValueList["${paramName}"]="${paramValue}";
+		
+	done <<< "$(echo "${paramValueList}")"
+	
+	
+	while
+	read -r paramName paramValue
+	do
+		paramName=$(echo "${paramName}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		
+		[[ "${argValueList["${paramName}"]:-}" != "" ]] && paramValue="${argValueList[${paramName}]:-}";
+		
+		[[ "${paramValue:-}" == "" ]] && emergency "Expected Value For Parameter: ## ${paramName} ## Missing In Call For Function: ## ${baseFunction} ##. Exiting."
+				
+		eval ${paramName}='${paramValue}';
+	
+		debug "${paramName}=${paramValue};"
+	done <<< "$(echo "${defValueList}")"
+	
+	
+	unset -v argValueList;	
 	
 	debug "################### END FUNCTION: getParameters  ###################"
 }
@@ -156,43 +141,153 @@ function clearParameters()
 	# ltrim & rtrim the input command and assigning to local variable
 	# e.g for input : "   (arg1=val1,arg2=val2,arg3=val3):delim=',';    "
 	# return : "(arg1=val1,arg2=val2,arg3=val3):delim=',';" 
-	local paramString=$( echo "${1}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-	local expectedParamList=$( echo "${2}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
-	local baseFunction="${3}";
+	local clearParamList=$( echo "${1}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
+	local baseFunction="${2}";
+	
+	
+	
+	#clearParameters "${paramString}" "${clearParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: clearParameters  ##################"
-	debug "expectedParamList : ${expectedParamList}"
-	debug "Caller Function : ${baseFunction} ${paramString}"
+	debug "clearParamList : ${clearParamList}"
+	debug "Caller Function : ${baseFunction}"
+	# Store name of the caller function in variable
+	
 	
 	# Extract the argument delimiter from the parameter string
 	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';"
 	# return :  , 
-	local expectedParamlistDelimiter=$( echo "${expectedParamList}" | sed  "s/^.*:delim='\(.*\)';/\1/1" );
+	local clearParamListDelimiter=$( echo "${clearParamList}" | sed  "s/^.*:delim='\(.*\)';$/\1/1" );
+	
 	
 	# If no delimiter is specified (:delim'|'; not present) then set the default to , (commma)
-	[[ ${expectedParamlistDelimiter} = ${expectedParamList} ]] && expectedParamlistDelimiter=','
+	[[ "${clearParamListDelimiter}" = "${clearParamList}" ]] && clearParamListDelimiter=','
+	
+	debug "clearParamListDelimiter : ${clearParamListDelimiter}"
+	
 	
 	# Remove the start & end paranthesis and delim specification from the param string
 	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';" OR "(arg1=val1,arg2=val2,arg3=val3)"
 	# return : arg1=val1,arg2=val2,arg3=val3 	
-	local modexpectedParamList=$( echo "${expectedParamList}" | sed 's/^(\s*//g' | sed "s/\s*):delim=.*;$//g" | sed "s/\s*)$//g" );
+	local modclearParamList=$( echo "${clearParamList}" | sed 's/:delim.*;$//1' | sed -e 's/^(//g' -e 's/)$//g' );
 	
-	local currentExpectedParam="";
-	local expectedParamName=""
-
-	for currentExpectedParam in ${modexpectedParamList//$(echo ${expectedParamlistDelimiter})/$'"\n"'}; do
-		expectedParamName=${currentExpectedParam%%=*}
+	debug "modclearParamList : ${modclearParamList}"	
+	
 		
-		# ltrim & rtrim the values
-		expectedParamName=$( echo "${expectedParamName}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
+	local clearVarList="$(echo ${modclearParamList} | awk " BEGIN { RS=\"[${clearParamListDelimiter}]\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+	#debug "clearVarList : ${clearVarList}"
+	
+	
+	while
+	read -r paramName paramValue
+	do
+		paramName=$(echo "${paramName}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
 		
-		debug "expectedParamName = ${expectedParamName};"
+		debug "Cleared Parameter : ${paramName};"
 		
-		unset -v "${expectedParamName}"
-		
-		debug "Cleared Variable : ${expectedParamName};"
-	done	
+		unset -v "${paramName}"		
+	
+	done <<< "$(echo "${clearVarList}")"
+	
 	
 	debug "################### END FUNCTION: clearParameters  ###################"
-	
 }
+
+
+function mapParameters()
+{
+
+	# ltrim & rtrim the input command and assigning to local variable
+	# e.g for input : "   (arg1=val1,arg2=val2,arg3=val3):delim=',';    "
+	# return : "(arg1=val1,arg2=val2,arg3=val3):delim=',';" 
+	local valueString=$( echo "${1}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
+	local expectedParamList=$( echo "${2}" | tail -1 | sed 's/^\s*//g' | sed 's/\s*$//g' );
+	local baseFunction="${3}";
+	
+	
+	
+	#clearParameters "${valueString}" "${expectedParamList}" "${baseFunction}"
+	
+	debug "################## BEGIN FUNCTION: mapParameters  ##################"
+	debug "valueString : ${valueString}"
+	debug "expectedParamList : ${expectedParamList}"
+	debug "Caller Function : ${baseFunction}"
+	# Store name of the caller function in variable
+	
+	
+	# Extract the argument delimiter from the parameter string
+	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';"
+	# return :  , 
+	local valueStringDelimiter=$( echo "${valueString}" | sed  "s/^.*:delim='\(.*\)';$/\1/1" );
+	local expectedParamlistDelimiter=$( echo "${expectedParamList}" | sed  "s/^.*:delim='\(.*\)';$/\1/1" );
+	
+	
+	# If no delimiter is specified (:delim'|'; not present) then set the default to , (commma)
+	[[ "${valueStringDelimiter}" == "${valueString}" ]] && valueStringDelimiter=','
+	[[ "${expectedParamlistDelimiter}" = "${expectedParamList}" ]] && expectedParamlistDelimiter=','
+	
+	debug "valueStringDelimiter : ${valueStringDelimiter}"
+	debug "expectedParamlistDelimiter : ${expectedParamlistDelimiter}"
+	
+	
+	# Remove the start & end paranthesis and delim specification from the param string
+	# e.g for input : "(arg1=val1,arg2=val2,arg3=val3):delim=',';" OR "(arg1=val1,arg2=val2,arg3=val3)"
+	# return : arg1=val1,arg2=val2,arg3=val3 	
+	local modvalueString=$( echo "${valueString}" | sed 's/:delim.*;$//1' | sed -e 's/^(//g' -e 's/)$//g' );
+	local modexpectedParamList=$( echo "${expectedParamList}" | sed 's/:delim.*;$//1' | sed -e 's/^(//g' -e 's/)$//g' );
+	
+	debug "modvalueString : ${modvalueString}"
+	debug "modexpectedParamList : ${modexpectedParamList}"	
+	
+	declare -a argValueList
+	typeset -i loopCtr=0
+	
+	local valueList="$(echo ${modvalueString} | awk " BEGIN { RS=\"[${valueStringDelimiter}]\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+	local defValueList="$(echo ${modexpectedParamList} | awk " BEGIN { RS=\"[${expectedParamlistDelimiter}]\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+	#debug "valueList : ${valueList}"
+	#debug "defValueList : ${defValueList}"
+	
+	
+	
+	while
+	read -r paramValue
+	do
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		
+		argValueList[${loopCtr}]="${paramValue}";
+	
+		((loopCtr=${loopCtr}+1));
+
+	done <<< "$(echo "${valueList}")"
+	
+	
+	
+	loopCtr=0;
+	while
+	read -r paramName paramValue
+	do
+		paramName=$(echo "${paramName}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		
+		[[ "${argValueList[${loopCtr}]:-}" != "" ]] && paramValue="${argValueList[${loopCtr}]:-}";
+		
+		[[ "${paramValue:-}" == "" ]] && emergency "Expected Value For Parameter: ## ${paramName} ## Missing In Call For Function: ## ${baseFunction} ##. Exiting."
+				
+		eval ${paramName}='${paramValue}';
+	
+		debug "${paramName}=${paramValue};"
+		
+		((loopCtr=${loopCtr}+1));
+	done <<< "$(echo "${defValueList}")"
+	
+	
+	
+	unset -v argValueList;	
+	
+	debug "################### END FUNCTION: mapParameters  ###################"
+}
+
