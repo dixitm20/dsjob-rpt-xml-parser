@@ -115,9 +115,6 @@ function getParameters()
 		[[ "${paramValue:-}" == "" ]] && emergency "Expected Value For Parameter: ## ${paramName} ## Missing In Call For Function: ## ${baseFunction} ##. Exiting."
 				
 		eval ${paramName}='${paramValue}';
-		
-		
-		notice "${!paramName}"
 			
 		debug "${paramName}=${paramValue};"
 	done <<< "$(echo "${defValueList}")"
