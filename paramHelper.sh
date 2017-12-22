@@ -356,3 +356,21 @@ function printVarValues()
 	debug "################### END FUNCTION: printVarValues  ###################"
 }
 
+
+# Extract param values from input arguments
+	getParameters "${1}" "${__expectedParam}" "${__this}"
+	
+	local configdir="$(echo "$(dirname "${configfile}")")"
+	
+	# Files which are combined to form the configuration parameter string
+	local commmonPwdFile="${configdir}/.include"
+	[[ -f "${commmonPwdFile}" ]] || commmonPwdFile=""
+	debug "commmonPwdFile = ${commmonPwdFile};"
+	
+	local commmonAppconfigFile="${configfile}"
+	[[ -f "${configfile}" ]] || emergency "App config file does not exists in path ${configfile}! Exiting."
+	debug "commmonAppconfigFile = ${commmonAppconfigFile};"
+	
+	local currentConfigFile="${configdir}/${configName}.config"
+	[[ -f "${currentConfigFile}" ]] || emergency "Config file does not exists in path ${currentConfigFile}! Exiting."
+	debug "currentConfigFile = ${currentConfigFile};"
