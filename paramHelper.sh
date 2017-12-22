@@ -374,3 +374,45 @@ function printVarValues()
 	local currentConfigFile="${configdir}/${configName}.config"
 	[[ -f "${currentConfigFile}" ]] || emergency "Config file does not exists in path ${currentConfigFile}! Exiting."
 	debug "currentConfigFile = ${currentConfigFile};"
+	
+	
+		declare -A varValueList
+	local paramString="( "
+	
+	local configVarValueList="$(cat "${commmonPwdFile}" "${commmonAppconfigFile}" "${currentConfigFile}" | sed  '/^\s*$/d' | \
+	                         awk " BEGIN { RS=\"\n\"; FS=\"=\"; OFS=\" \" } { print \$1,substr(\$0,length(\$1)+2) } " | sed -e 's/^\s*//g' -e 's/\s*$//g')"
+	
+
+	debug "configVarValueList : ${configVarValueList}"
+	
+	
+	while
+	read -r paramName paramValue
+	do
+		paramName=$(echo "${paramName}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		paramValue=$(echo "${paramValue}" | sed -e 's/^\s*//g' -e 's/\s*$//g')
+		
+		varValueList["${paramName}"]="${paramValue}"
+	
+	done <<< "$(echo "${configVarValueList}")"
+	
+
+	
+	for paramName in "${!varValueList[@]}"
+	do
+		local paramValue="${varValueList[${paramName}]}"
+		
+		paramString="${paramString} ${paramName}=${paramValue} ${outdelim}"
+		
+		[[ "${paramName}" =~ .*PWD$ ]] && paramValue="XXXXXX";
+		debug "${paramName} = ${paramValue};"
+	
+	done
+	
+	
+	# Remove last extra delimiter and add the last delim part (:delim'<<x>>';)) to the end
+	paramString="$(echo "${paramString}" | sed "s/${outdelim}$/):delim='${outdelim}';/1" )"
+	__outValue="${paramString}"
+	
+	paramString="$( echo "${paramString}" | sed "s/PWD=[^${outdelim}]*/PWD=XXXXXX /g" )"
+	debug "${paramString}"
