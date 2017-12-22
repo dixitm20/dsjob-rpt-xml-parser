@@ -50,6 +50,7 @@ function getParameters()
 	local baseFunction="${3}";
 	
 	
+	
 	clearParameters "${expectedParamList}" "${baseFunction}"
 	
 	debug "################## BEGIN FUNCTION: getParameters  ##################"
@@ -356,8 +357,17 @@ function printVarValues()
 	debug "################### END FUNCTION: printVarValues  ###################"
 }
 
+# ReadConfig=$(genConfigParamString "( configName=TEST3~configfile=${arg_c}~outdelim=, ):delim='~';" )
+function genConfigParamString()
+{
 
-# Extract param values from input arguments
+	local __expectedParam='(configName,configfile,outdelim)'
+	local __this="${FUNCNAME[0]} ${1}"
+	local __fnName="${FUNCNAME[0]}"
+	local __outValue=""
+
+	debug "################## BEGIN FUNCTION: genConfigParamString  ##################"
+	# Extract param values from input arguments
 	getParameters "${1}" "${__expectedParam}" "${__this}"
 	
 	local configdir="$(echo "$(dirname "${configfile}")")"
@@ -416,3 +426,10 @@ function printVarValues()
 	
 	paramString="$( echo "${paramString}" | sed "s/PWD=[^${outdelim}]*/PWD=XXXXXX /g" )"
 	debug "${paramString}"
+
+	clearParameters "${__expectedParam}" "${__this}"
+	
+	echo "${__outValue}"
+	
+	debug "################### END FUNCTION: genConfigParamString  ###################"
+}
