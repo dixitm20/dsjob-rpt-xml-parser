@@ -49,7 +49,7 @@ function __setEnv_help () {
 
 
 function warning ()  {
-echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") : WARNING : $@" 1>&2
+echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") : ! WARNING : $@" 1>&2
 }
 
 function info ()  {
@@ -57,7 +57,7 @@ echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") : INFO : $@" 1>&2
 }
 
 function error ()  {
-echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") : !!ERROR : $@" 1>&2
+echo -e "$(date -u +"%Y-%m-%d %H:%M:%S UTC") : !! ERROR !! : $@" 1>&2
 exit 1
 }
 
