@@ -1,0 +1,7 @@
+# Encrypt File
+openssl enc -aes-256-cbc -salt -a   < infile > encrypted_outfile
+
+
+# Decrypt File
+openssl enc -aes-256-cbc -salt -d -a   < encrypted_outfile > decrypted_outfile
+
