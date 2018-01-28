@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 function loadConfigToRuntimeEnv()
 {
 	local __expectedParam='(configfile,envfile,tmpdir,logdir,unqid)'
