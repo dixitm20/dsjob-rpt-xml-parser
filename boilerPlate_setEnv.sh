@@ -1,6 +1,7 @@
+
 #!/usr/bin/env bash
 
-
+# source /opt/IBM/InformationServer/Server/DSEngine/dsenv
 
 # Set magic variables for current file, directory, os, etc.
 __setEnv_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
