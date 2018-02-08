@@ -348,7 +348,14 @@ function printEnvParameters()
 			
 			info "${runtimeEnvParamPrefix}${varName}=${varValue};"
 			
-			[[ "${isRuntimeEnvParamList}" == "TRUE" ]] && $(appendToRuntimeEnvFile "(attribName=${varName}#@#attribValue=${varValue}#@#logdir=${logdir}#@#unqid=${unqid}):delim='#@#';" > /dev/null )
+			# remove this after testing
+			#[[ "${isRuntimeEnvParamList}" == "TRUE" ]] && $(appendToRuntimeEnvFile "(attribName=${varName}#@#attribValue=${varValue}#@#logdir=${logdir}#@#unqid=${unqid}):delim='#@#';" > /dev/null )
+			
+			if [[ "${isRuntimeEnvParamList}" == "TRUE" ]]; then
+				runtimeenvfile=$(getRuntimeEnvFile "(logdir=${logdir},unqid=${unqid})")
+				debug "VALUE_OF_${varName}=${varValue}"
+				echo "VALUE_OF_${varName}=${varValue}" >> ${runtimeenvfile}
+			fi
 			
 		done <<< "$(echo "${variableList}")"
 	fi
